@@ -55,23 +55,29 @@
               </form>
             </div>
           </div>
-          <!-- Modal -->
-          <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="deleteModalLabel">Silme Onayı</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                  Bu masayı silmek istediğinizden emin misiniz?
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-danger">Sil</button>
+          @foreach($tables as $table)
+            <!-- Modal -->
+            <div class="modal fade" id="deleteModal-{{$table->id}}" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Silme Onayı</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    Bu masayı silmek istediğinizden emin misiniz?
+                  </div>
+                  <div class="modal-footer">
+                    <form action="{{ route('masa-delete', $table->id) }}" method="POST" onsubmit="return confirm('Bu masayı silmek istediğinize emin misiniz?');">
+                      @csrf
+                      @method('POST')
+                      <button type="submit" class="btn btn-danger">Sil</button>
+                    </form>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          @endforeach
 
         </div>
         <div class="row g-3">
@@ -88,7 +94,7 @@
                   <i class='bx bx-dish d-flex justify-content-center' style="font-size: 54px;color: #F5F5F9"></i>
                 </div>
                 <!-- Silme ikonu -->
-                <i class="bx bx-trash position-absolute top-0 end-0 m-2" style="cursor: pointer; color: #F5F5F9;" data-bs-toggle="modal" data-bs-target="#deleteModal" onclick="event.stopPropagation();"></i>
+                <i class="bx bx-trash position-absolute top-0 end-0 m-2" style="cursor: pointer; color: #F5F5F9;" data-bs-toggle="modal" data-bs-target="#deleteModal-{{$table->id}}" onclick="event.stopPropagation();"></i>
               </div>
             </div>
           @endforeach

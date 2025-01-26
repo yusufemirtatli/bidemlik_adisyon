@@ -76,7 +76,10 @@ class TableController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $table = tables::find($id);
+        $table->delete();
+
+        return redirect(route('masa'));
     }
 
   public function detail($id)

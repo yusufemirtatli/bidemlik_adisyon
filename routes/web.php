@@ -25,6 +25,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/',[Table::class,'index'])->name('masa');
         Route::get('/{id}',[Table::class,'detail'])->name('masa_detail');
         Route::post('/tablecreate',[Table::class,'store'])->name('masa_create');
+        Route::post('/{id}/delete',[Table::class,'destroy'])->name('masa-delete');
     });
 ////////////////////////////////////////////////////////////////////////////////////
     /*                                Menu Routes                                    */
