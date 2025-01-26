@@ -11,6 +11,9 @@ class product_shopcart extends Model
 
   protected $table = 'product_shopcarts';
 
+  protected $fillable = ['product_id', 'shopcart_id', 'quantity', 'price']; // Gerekli sütunları buraya ekleyin
+
+
   public function product()
   {
     return $this->belongsTo(product::class);

@@ -11,58 +11,93 @@ use Illuminate\Http\Request;
 
 class ShopcartController extends Controller
 {
- public function update(Request $request)
+  public function update(Request $request)
   {
-    //* Table id'yi alıyor ve bu masaya atanan ödenmemiş shopcartları listeliyor
     $table_id = $request->input('table');
     $shopcart_id = shopcart::where('table_id', $table_id)
       ->where('isPaid', false)
-      ->pluck('id')->first(); // İlk shopcart ID'sini alıyoruz
+      ->pluck('id')
+      ->first();
 
-    $arrays = $request->input('array');
-    // Bu shopcart'a ait tüm ürünleri alıyoruz
-    $shopcarts = product_shopcart::where('shopcart_id', $shopcart_id)->get();
+    $arrays = $request->input('array'); // Array: [ [product_id, quantity], ... ]
+
+    if (!$shopcart_id) {
+      return response()->json(['error' => 'Shopcart not found or is already paid.'], 404);
+    }
 
     foreach ($arrays as $array) {
-      // İlk olarak ürünün mevcut olup olmadığını kontrol ediyoruz
-      $sc = $shopcarts->where('product_id', $array[0])->where('isPaid',false)->first();
-      if ($sc) {
-        // Eğer mevcutsa, quantity değerini güncelliyoruz
-        $sc->quantity += $array[1];
-        $sc->save();
-        echo "<script>console.log('$sc');</script>";
-      } else{
-        // Eğer mevcut değilse, yeni bir ürün oluşturuyoruz
-        $data = new product_shopcart();
-        $data->product_id = $array[0];
-        $data->shopcart_id = $shopcart_id;
-        $data->quantity = $array[1];
-        $data->isPaid = false; // Varsayılan olarak isPaid false olarak ayarlanıyor
-        $data->save();
+      $product_id = $array[0];
+      $quantity_to_add = $array[1];
+
+      // Belirtilen ürün mevcut mu?
+      $productShopcart = product_shopcart::where('shopcart_id', $shopcart_id)
+        ->where('product_id', $product_id)
+        ->where('isPaid', false)
+        ->first();
+
+      if ($productShopcart) {
+        // Ürün mevcutsa quantity artır
+        $productShopcart->quantity += $quantity_to_add;
+        $productShopcart->save();
+      } else {
+        // Ürün yoksa yeni kayıt oluştur
+        product_shopcart::create([
+          'product_id' => $product_id,
+          'shopcart_id' => $shopcart_id,
+          'quantity' => $quantity_to_add,
+          'isPaid' => false,
+        ]);
       }
     }
+
+    // Güncellenen verileri döndür
+    $updatedShopcart = product_shopcart::where('shopcart_id', $shopcart_id)->get();
+    return response()->json($updatedShopcart);
   }
+
+
 
   public function updateDatabase(Request $request)
   {
     // JSON verisini al
     $products = $request->input('products');  // 'products' anahtarını kullanarak arrayi alıyoruz
+    $errors = []; // Hata dizisini oluşturuyoruz
 
-    // Array olarak göndelirlen shopcart_productsları teker teker verilerini alma
+    // Array olarak gönderilen shopcart_productsları teker teker işliyoruz
     foreach ($products as $product) {
       $productShopcartId = $product['product_shopcart_id']; // Her bir ürün için product_shopcart_id alıyoruz
       $quantity = $product['quantity'];  // Her bir ürün için quantity alıyoruz
 
-      // Burada gelen arrayin içinden shopcart_product'ın id sini alıp
+      // Burada gelen arrayin içinden shopcart_product'ın id'sini alıp
       // database'de o id ile sorgulama yapıp quantity değerini güncelliyoruz
       $item = product_shopcart::find($productShopcartId);
-      $item->quantity = $quantity;
-      $item->save();
 
+      // Eğer ürün bulunamazsa, hata ekle
+      if (!$item) {
+        $errors[] = "Product with shopcart_id {$productShopcartId} not found.";
+        continue; // Eğer ürün bulunamazsa işlemi atla
+      }
+
+      // Ürün bulunduysa quantity değerini güncelle
+      $item->quantity = $quantity;
+
+      try {
+        // Güncelleme işlemini yap
+        $item->save();
+      } catch (\Exception $e) {
+        // Hata alırsak, hatayı logla
+        $errors[] = "Failed to update product with shopcart_id {$productShopcartId}: " . $e->getMessage();
+      }
+    }
+
+    // Eğer hata varsa, hata mesajları ile birlikte dönebiliriz
+    if (!empty($errors)) {
+      return response()->json(['success' => false, 'errors' => $errors]);
     }
 
     return response()->json(['success' => true, 'data' => $products]);
   }
+
 
   public function updateDatabasePaid(Request $request)
   {

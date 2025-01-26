@@ -120,17 +120,88 @@
   <!--/ Layout wrapper -->
 @endsection
 <script>
-  // beforeunload kontrol değeri
   let beforeunload = true; // Varsayılan olarak false
-  // Sayfa kapatılmadan veya yenilenmeden önce çalışacak olan fonksiyon
-  function onBeforeUnload() {
-    if (beforeunload) {
-      updateDatabase(); // Özel fonksiyonu çağır
-      console.log('updateDatabase çalıştırıldı');
+  let isUpdating = false; // Güncelleme işlemi kontrolü
+
+  // Sayfa yenilendiğinde çalışacak olan fonksiyon
+  async function onBeforeUnload(event) {
+    if (beforeunload && !isUpdating) {
+      isUpdating = true; // Güncelleme işlemini başlat
+
+      // updateDatabase fonksiyonunu başlat ve bitene kadar bekle
+      try {
+        await updateDatabase();
+        console.log('updateDatabase çalıştırıldı');
+      } catch (error) {
+        console.error('Error in updateDatabase:', error);
+      }
+
+      // Sayfanın yenilenmesini engelle
+      event.preventDefault();
+
+      alert('Sayfa yenileniyor, işlemler kaydedilmeden sayfayı yenilememeniz önerilir.');
+
     }
   }
+
+  // Sayfa yenilendiğinde veya kapatılmadan önce çalışacak olay
   window.addEventListener('beforeunload', onBeforeUnload);
+
+  async function updateDatabase() {
+    // *********** DATABASE GÜNCELLEME SCRİPTİ *******************
+    // Tüm satırları seçin
+    var rows = document.querySelectorAll('tr.product-row-tr');
+
+    // Tüm verileri tutacak bir array oluştur
+    var productsArray = [];
+
+    rows.forEach(function (row) {
+      // Ürün ID'sini ve mevcut değeri alın
+      var productShopcartId = row.getAttribute('data-product-shopcart-id');
+      var productProductId = row.getAttribute('data-product-product_id');
+      var productQuantityElement = row.querySelector('.quantity');
+
+      var productQuantityValue = parseInt(productQuantityElement.textContent);
+
+      // Her bir ürün için obje oluştur ve array'e ekle
+      productsArray.push({
+        product_shopcart_id: productShopcartId,
+        product_id: productProductId,
+        quantity: productQuantityValue,
+      });
+    });
+
+    try {
+      // AJAX çağrısı oluştur ve productsArray'i gönder
+      const response = await fetch('/update-database', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+          products: productsArray
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log(data);
+      } else {
+        console.log('error');
+        console.log(data);
+      }
+
+    } catch (error) {
+      console.error('Error updating products:', error);
+    }
+
+    updateTableTotals();
+  }
+
 </script>
+
 <script>
   function updateTableTotals() {
     fetch('/update-table-totals', {
@@ -195,94 +266,6 @@
     updateModalMaxQuantity(productId, quantityInt);
     updateGrandTotal();
   }
-  function updateModalMaxQuantity(productId, newValue) {
-    // Tüm product-row-tr sınıfına sahip satırları seç
-    var rows = document.querySelectorAll('tr.product-row-tr-modal');
-
-    // Her satırda döngü yap
-    rows.forEach(function(row) {
-      // Satırdaki data-product-shopcart_id değerini al
-      var rowProductId = row.getAttribute('data-product-shopcart_id');
-
-      // Eğer ID'ler eşleşirse
-      if (rowProductId === productId.toString()) {
-        // currentValueMax class'ına sahip <span> elemanını bul
-        var maxQuantityElement = row.querySelector('.maxQuantity');
-
-        // İçeriği güncelle
-        if (maxQuantityElement) {
-          maxQuantityElement.textContent = newValue + ' /';
-        }
-      }
-    });
-  }
-  function updateGrandTotal() {
-    var shopcartLeftTotalElement = document.querySelectorAll('.product-total-price');
-
-    // Genel toplamı hesaplamak için bir değişken tanımla
-    var shopcartLeftTotalValue = 0;
-
-
-    // Her bir total değeri için döngüye gir ve genel toplama ekle
-    shopcartLeftTotalElement.forEach(function (totalElement) {
-      // Total değerini sayıya çevir ve genel toplamı artır
-      var totalValue = parseInt(totalElement.textContent);
-      shopcartLeftTotalValue += totalValue;
-    });
-
-    // Genel toplamı ekrana yaz
-    document.getElementById('grandTotal').innerHTML = shopcartLeftTotalValue + ' TL';
-  }
-
-  function updateDatabase(){
-    // *********** DATABASE GÜNCELLEME SCRİPTİ *******************
-    // Tüm satırları seçin
-    var rows = document.querySelectorAll('tr.product-row-tr');
-
-    // Tüm verileri tutacak bir array oluştur
-    var productsArray = [];
-
-    rows.forEach(function (row) {
-      // Ürün ID'sini ve mevcut değeri alın
-      var productShopcartId = row.getAttribute('data-product-shopcart-id');
-      var productProductId = row.getAttribute('data-product-product_id');
-      var productQuantityElement = row.querySelector('.quantity');
-
-      var productQuantityValue = parseInt(productQuantityElement.textContent);
-
-      // Her bir ürün için obje oluştur ve array'e ekle
-      productsArray.push({
-        product_shopcart_id: productShopcartId,
-        product_id: productProductId,
-        quantity: productQuantityValue,
-      });
-    });
-
-// AJAX çağrısı oluştur ve productsArray'i gönder
-    fetch('/update-database', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-      },
-      body: JSON.stringify({
-        products: productsArray
-      })
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          console.log(data);
-        } else {
-          console.log('error');
-          console.log(data);
-        }
-      })
-      .catch(error => {
-        console.error('Error updating products:', error);
-      });
-    updateTableTotals();
-  }
 
   function paidAll(button) {
     var rows = document.querySelectorAll('.product-row-tr');
@@ -331,5 +314,43 @@
     updateTableTotals();
     beforeunload = !beforeunload;
     window.location.reload();
+  }
+  function updateModalMaxQuantity(productId, newValue) {
+    // Tüm product-row-tr sınıfına sahip satırları seç
+    var rows = document.querySelectorAll('tr.product-row-tr-modal');
+
+    // Her satırda döngü yap
+    rows.forEach(function(row) {
+      // Satırdaki data-product-shopcart_id değerini al
+      var rowProductId = row.getAttribute('data-product-shopcart_id');
+
+      // Eğer ID'ler eşleşirse
+      if (rowProductId === productId.toString()) {
+        // currentValueMax class'ına sahip <span> elemanını bul
+        var maxQuantityElement = row.querySelector('.maxQuantity');
+
+        // İçeriği güncelle
+        if (maxQuantityElement) {
+          maxQuantityElement.textContent = newValue + ' /';
+        }
+      }
+    });
+  }
+  function updateGrandTotal() {
+    var shopcartLeftTotalElement = document.querySelectorAll('.product-total-price');
+
+    // Genel toplamı hesaplamak için bir değişken tanımla
+    var shopcartLeftTotalValue = 0;
+
+
+    // Her bir total değeri için döngüye gir ve genel toplama ekle
+    shopcartLeftTotalElement.forEach(function (totalElement) {
+      // Total değerini sayıya çevir ve genel toplamı artır
+      var totalValue = parseInt(totalElement.textContent);
+      shopcartLeftTotalValue += totalValue;
+    });
+
+    // Genel toplamı ekrana yaz
+    document.getElementById('grandTotal').innerHTML = shopcartLeftTotalValue + ' TL';
   }
 </script>

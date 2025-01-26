@@ -188,25 +188,50 @@
 
     // Veritabanına kaydetmek için AJAX fonksiyonu
     function saveToDatabase() {
-        $.ajax({
-            url: '/update-product-shopcart', // Laravel rotası
-            method: 'POST',
-            data: {
-                array: allArray,
-                table: dynamicValue,
-            },
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function (response) {
-                console.log(response);
-            },
-            error: function (xhr) {
-                console.log(xhr.responseText);
-            }
-        });
-        beforeunload = !beforeunload;
-        window.location.reload();
+      // Öncelikle tüm verilerin gönderildiğine dair bir işaret koyabilirsiniz
+      const saveButton = document.querySelector('.btn-primary');
+      saveButton.disabled = true; // Kullanıcı tekrar kaydetmesin diye düğmeyi devre dışı bırak
+
+      $.ajax({
+        url: '/update-product-shopcart', // Laravel rotası
+        method: 'POST',
+        data: {
+          array: allArray,
+          table: dynamicValue,
+        },
+        headers: {
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function (response) {
+          // Veriler başarıyla kaydedildi
+          console.log("Başarılı:", response);
+
+          refreshUI(response); // UI'yi güncellemek için bir fonksiyon çağır
+          beforeunload = !beforeunload;
+          location.reload();
+
+        },
+        error: function (xhr) {
+          console.error("Hata:", xhr.responseText);
+          alert("Ürünler kaydedilirken bir hata oluştu!");
+        },
+        complete: function () {
+          // İşlem tamamlandığında düğmeyi yeniden etkinleştir
+          saveButton.disabled = false;
+        }
+      });
+    }
+
+    // UI'yi güncelleme fonksiyonu (örnek)
+    function refreshUI(response) {
+      // Response içeriğini aldıktan sonra UI'de güncellemeler yapabilirsiniz
+      // Örneğin, ürün miktarlarını sıfırlamak:
+      document.querySelectorAll('[id^="number-display-"]').forEach(display => {
+        display.textContent = "0";
+      });
+
+      // allArray'i sıfırla
+      allArray = [];
     }
 </script>
 <script>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\exports;
 
 use App\Http\Controllers\Controller;
+use App\Models\product;
 use App\Models\tables;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -113,7 +114,7 @@ class AdisyonExportController extends Controller
     // Ürün verileri
     $row = 2;
     foreach ($groupedProducts as $productId => $products) {
-      $productDetails = \App\Models\Product::find($productId); // Ürün bilgileri
+      $productDetails = Product::find($productId); // Ürün bilgileri
       $totalQuantity = $products->sum('quantity'); // Aynı üründen toplam satış adedi
       if ($productDetails) {
         $sheet2->setCellValue('A' . $row, $productDetails->title);
