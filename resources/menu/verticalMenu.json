@@ -1,0 +1,38 @@
+{
+  "menu": [
+
+    {
+
+      "menuHeader": "My Pages"
+    },
+    {
+      "name": "Gösterge Paneli",
+      "icon": "menu-icon tf-icons bx bxs-dashboard",
+      "slug": "Gösterge Paneli",
+      "url": "dashboard"
+    },
+    {
+      "name": "Masa",
+      "icon": "menu-icon tf-icons bx bx-dish",
+      "slug": "masa",
+      "url": "masa"
+    },
+    {
+      "name": "Menu",
+      "icon": "menu-icon tf-icons bx bx-food-menu",
+      "slug": "menu",
+      "submenu": [
+        {
+          "url": "menu",
+          "name": "Ürün Listesi",
+          "slug": "menu-product"
+        },
+        {
+          "url": "menu/category",
+          "name": "Kategori Listesi",
+          "slug": "menu-category"
+        }
+      ]
+    }
+  ]
+}
