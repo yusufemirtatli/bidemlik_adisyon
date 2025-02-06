@@ -27,7 +27,12 @@ class ShopcartController extends Controller
 
     foreach ($arrays as $array) {
       $product_id = $array[0];
-      $quantity_to_add = $array[1];
+      if ($array[1] <= 0){
+        $quantity_to_add = 0;
+      }
+      else{
+        $quantity_to_add = $array[1];
+      }
 
       // Belirtilen ürün mevcut mu?
       $productShopcart = product_shopcart::where('shopcart_id', $shopcart_id)
@@ -66,7 +71,11 @@ class ShopcartController extends Controller
     // Array olarak gönderilen shopcart_productsları teker teker işliyoruz
     foreach ($products as $product) {
       $productShopcartId = $product['product_shopcart_id']; // Her bir ürün için product_shopcart_id alıyoruz
-      $quantity = $product['quantity'];  // Her bir ürün için quantity alıyoruz
+      if ($product['quantity'] <= 0){
+        $quantity = 0;  // Her bir ürün için quantity alıyoruz
+      }else{
+        $quantity = $product['quantity'];  // Her bir ürün için quantity alıyoruz
+      }
 
       // Burada gelen arrayin içinden shopcart_product'ın id'sini alıp
       // database'de o id ile sorgulama yapıp quantity değerini güncelliyoruz
@@ -104,7 +113,12 @@ class ShopcartController extends Controller
     $products = $request->input('products');  // 'products' anahtarını kullanarak arrayi alıyoruz
     foreach ($products as $product) {
       $productShopcartId = $product['product_shopcart_id']; // Her bir ürün için product_shopcart_id alıyoruz
-      $quantity = $product['quantity'];  // Her bir ürün için quantity alıyoruz
+      if ($product['quantity'] <= 0){
+        $quantity = 0;
+      }
+      else{
+        $quantity = $product['quantity'];
+      }
       $product_id = $product['product_id'];  // Her bir ürün için quantity alıyoruz
       $item = product_shopcart::find($productShopcartId);
       if ($item) {

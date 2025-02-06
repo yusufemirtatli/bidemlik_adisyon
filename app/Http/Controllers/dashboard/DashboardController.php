@@ -4,6 +4,7 @@ namespace App\Http\Controllers\dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\category;
+use App\Models\gider;
 use App\Models\product;
 use App\Models\product_shopcart;
 use App\Models\shopcart;
@@ -17,6 +18,17 @@ class DashboardController extends Controller
    */
   public function index()
   {
+    $monthlyAdisyonByMonth = Shopcart::whereBetween('created_at', [
+      Carbon::now()->subMonths(3)->startOfMonth(), // 4 ay önceki ayın başı
+      Carbon::now()->endOfMonth() // Bu ayın sonu
+    ])
+      ->where('ispaid', 1)
+      ->get()
+      ->groupBy(function ($item) {
+        return Carbon::parse($item->created_at)->format('Y-m'); // Tarihi "YYYY-MM" formatında gruplar
+      })
+      ->sortKeysDesc(); // Ayları en yeni olandan eskiye sıralar
+
     $monthlyAdisyonByDay = Shopcart::whereBetween('created_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])
       ->where('ispaid', 1)
       ->get()
@@ -28,22 +40,23 @@ class DashboardController extends Controller
     $monthlyAdisyon = shopcart::whereBetween('created_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])
       ->where('ispaid', 1)
       ->get();
+
     $dailyAdisyon = shopcart::whereBetween('created_at', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])
       ->where('ispaid', 1)
       ->get();
 
     $monthlySales = product_shopcart::whereBetween('created_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])->get();
-    $weeklySales = product_shopcart::where('created_at', '>=', Carbon::now()->subDays(7))->get();
     $dailySales = product_shopcart::whereBetween('created_at', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->get();
     $categories = category::all();
     return view('myviews.dashboard.dashboard',[
       'dailySales' => $dailySales,
-      'weeklySales' => $weeklySales,
       'monthlySales' => $monthlySales,
       'categories' => $categories,
       'monthlyAdisyon' => $monthlyAdisyon,
       'dailyAdisyon' => $dailyAdisyon,
       'monthlyAdisyonByDay' => $monthlyAdisyonByDay,
+      'monthlyAdisyonByMonth' => $monthlyAdisyonByMonth,
+
     ]);
   }
 

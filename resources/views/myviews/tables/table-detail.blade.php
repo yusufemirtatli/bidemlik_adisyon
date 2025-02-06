@@ -267,7 +267,17 @@
     updateGrandTotal();
   }
 
-  function paidAll(button) {
+  async function paidAll(button) {
+    // Öncelikle updateDatabase fonksiyonunun tamamlanmasını bekle
+    try {
+      await updateDatabase(); // Güncellemeyi beklemeden paidAll çalışmaz
+      console.log('updateDatabase işlemi tamamlandı.');
+    } catch (error) {
+      console.error('updateDatabase sırasında bir hata oluştu:', error);
+      return; // Hata durumunda paidAll işlemini başlatma
+    }
+
+    // Tüm ürünleri seç
     var rows = document.querySelectorAll('.product-row-tr');
 
     // Tüm verileri tutacak bir array oluştur
@@ -288,33 +298,40 @@
       });
     });
 
-    fetch('/update-database-paid', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-      },
-      body: JSON.stringify({
-        products: productsArray,
-        shopcart_id:{{$shopcartId}}
-      })
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          console.log(data);
-        } else {
-          console.log('error');
-          console.log(data);
-        }
-      })
-      .catch(error => {
-        console.error('Error updating products:', error);
+    try {
+      const response = await fetch('/update-database-paid', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        },
+        body: JSON.stringify({
+          products: productsArray,
+          shopcart_id: {{$shopcartId}}
+        })
       });
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log(data);
+      } else {
+        console.log('error:', data);
+      }
+    } catch (error) {
+      console.error('Error updating products:', error);
+    }
+
+    // Tablo toplamlarını güncelle
     updateTableTotals();
+
+    // Sayfa yenilemeden önce beforeunload'u değiştir
     beforeunload = !beforeunload;
+
+    // Sayfayı yeniden yükle
     window.location.reload();
   }
+
   function updateModalMaxQuantity(productId, newValue) {
     // Tüm product-row-tr sınıfına sahip satırları seç
     var rows = document.querySelectorAll('tr.product-row-tr-modal');

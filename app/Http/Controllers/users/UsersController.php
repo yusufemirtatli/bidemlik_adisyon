@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\users;
 
 use App\Http\Controllers\Controller;
+use App\Models\shopcart;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -68,6 +69,13 @@ class UsersController extends Controller
     }
     public function login(Request $request)
     {
+
+      // Bugünden önceki günlere ait, isPaid = 0 ve all_total = 0 olan shopcart kayıtlarını sil
+      $emptyShopcarts = shopcart::where('all_total', 0)
+        ->where('isPaid', 0)
+        ->whereDate('created_at', '<', now()->toDateString()) // Bugünden önceki günleri al
+        ->delete();
+
         // Validasyon
         $credentials = $request->validate([
             'email' => ['required', 'string', 'email'], // Email doğru formatta olmalı
