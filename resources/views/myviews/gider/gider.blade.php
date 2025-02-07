@@ -95,7 +95,11 @@
                               <td>{{$gider->amount}} TL</td>
                               <td>{{ $gider->created_at->format('d.m.Y') }}</td>
                               <td>
-                                <button class="btn btn-danger">Sil</button>
+                                <form action="{{route('delete-gider',$gider->id)}}" method="POST">
+                                  @csrf
+                                  @method('POST')
+                                  <button type="submit" class="btn btn-danger">Sil</button>
+                                </form>
                               </td>
                             </tr>
                           @endforeach

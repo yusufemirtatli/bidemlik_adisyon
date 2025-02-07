@@ -193,7 +193,7 @@ class AdisyonExportController extends Controller
 
     // İlk tablo: Günlük adisyonlar
     $sheet1 = $spreadsheet->getActiveSheet();
-    $sheet1->setTitle('Adisyon ' . \Carbon\Carbon::parse($month)->format('d-m-Y'));
+    $sheet1->setTitle('Adisyon ' . \Carbon\Carbon::parse($month)->format('m-Y'));
 
     // Adisyon başlıkları
     $sheet1->setCellValue('A1', 'Adisyon Numarası');

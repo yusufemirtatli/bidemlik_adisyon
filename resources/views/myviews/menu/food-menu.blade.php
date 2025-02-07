@@ -138,7 +138,7 @@
               <div class="card mb-3 position-relative">
                 <div class="row g-0">
                   <div class="col-md-4">
-                    <img class="card-img card-img-left" src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->title }}" style="width: 100%; height: 100%;">
+                    <img class="card-img card-img-left" src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->title }}" style="width: 100%; height: 100%;">,
                   </div>
                   <div class="col-md-8">
                     <div class="card-body">

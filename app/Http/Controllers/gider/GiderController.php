@@ -52,8 +52,19 @@ class GiderController extends Controller
 
   public function destroy($id){
     $data = gider_cat::find($id);
+    $sub_data = gider::where('cat_id',$id)->get();
+    foreach ($sub_data as $rs){
+        $rs->delete();
+    }
     $data->delete();
 
     return redirect(route('gider-category'));
+  }
+
+  public function subDestroy($id){
+      $data = gider::find($id);
+      $data->delete();
+
+      return redirect(route('gider-index'));
   }
 }

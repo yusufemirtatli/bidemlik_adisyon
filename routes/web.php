@@ -153,12 +153,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/category',[GiderController::class,'category'])->name('gider-category');
     Route::post('/add/category',[GiderController::class,'storeCategory'])->name('add-gider-category');
     Route::post('/category/delete/{id}',[GiderController::class,'destroy'])->name('delete-gider-category');
+    Route::post('/category/sub/delete/{id}',[GiderController::class,'subDestroy'])->name('delete-gider');
 
   });
   ////////////////////////////////////////////////////////////////////////////////////
   /*                                Settings Routes                                    */
   Route::prefix('settings')->group(function (){
     Route::get('/',[SettingController::class,'index'])->name('settings-index');
+    Route::post('/db-clear',[SettingController::class,'clearDb'])->name('database.clean');
 
   });
 ////////////////////////////////////////////////////////////////////////////////////

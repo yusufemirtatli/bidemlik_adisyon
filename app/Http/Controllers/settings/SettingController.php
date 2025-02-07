@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\settings;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SettingController extends Controller
 {
@@ -61,5 +63,17 @@ class SettingController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function clearDb(){
+      // 2 ay öncesinin tarihini al
+      $twoMonthsAgo = Carbon::now()->subMonths(2);
+
+      // Eski verileri temizle
+      DB::table('shopcarts')->where('created_at', '<', $twoMonthsAgo)->delete();
+      DB::table('product_shopcarts')->where('created_at', '<', $twoMonthsAgo)->delete();
+      DB::table('giders')->where('created_at', '<', $twoMonthsAgo)->delete();
+
+      return redirect()->back()->with('success', 'Eski veriler başarıyla temizlendi!');
     }
 }
