@@ -96,19 +96,35 @@
                       onclick="updateDatabase()">
                 Hesabı Ayır
               </button>
-              <div class="btn-group">
-                <button type="button" class="btn btn-warning dropdown-toggle" data-bs-toggle="dropdown"
-                        aria-expanded="false">Böl
-                </button>
-                <ul class="dropdown-menu" style="">
-                  <li><a class="dropdown-item" href="javascript:void(0);">2'ye Böl</a></li>
-                  <li><a class="dropdown-item" href="javascript:void(0);">3' e Böl</a></li>
-                  <li><a class="dropdown-item" href="javascript:void(0);">4' e Böl</a></li>
-                </ul>
+              <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#veresiye">
+                Veresiye Ekle
+              </button>
+              <!-- Large Modal -->
+              <div class="modal fade" id="veresiye" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="exampleModalLabel3">Veresiye Ekle</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                      <div class="modal-body">
+                        <div class="row">
+                          <div class="col mb-3">
+                            <label for="description" class="form-label">Açıklama</label>
+                            <input type="text" name="description" id="description" class="form-control" placeholder="Enter Name">
+                          </div>
+                          <input type="hidden" name="shopcart_id" value="{{$shopcartId}}">
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" onclick="addVeresiye()">Kaydet</button>
+                      </div>
+                  </div>
+                </div>
               </div>
-                <button onclick="paidAll(this)" class="btn btn-success">
-                  Toplam
-                </button>
+              <button onclick="paidAll(this)" class="btn btn-success">
+                Toplam
+              </button>
             </div>
           </div>
         </div>
@@ -266,6 +282,48 @@
     updateModalMaxQuantity(productId, quantityInt);
     updateGrandTotal();
   }
+  async function addVeresiye() {
+    // Açıklama alanının değerini al
+    let description = document.getElementById("description").value;
+    // shopcart_id'yi gizli inputtan al
+    let shopcartId = document.querySelector("input[name='shopcart_id']").value;
+
+    // Eğer açıklama boşsa, kullanıcıya uyarı ver
+    if (!description.trim()) {
+      alert("Lütfen açıklama alanını doldurun.");
+      return;
+    }
+
+    try {
+      // AJAX isteğini yap
+      const response = await fetch('/add-veresiye', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+          description: description,
+          shopcart_id: shopcartId
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log("Veresiye başarıyla eklendi:", data);
+        // Modalı kapat
+        let modal = new bootstrap.Modal(document.getElementById("veresiye"));
+        modal.hide();
+        // Sayfayı yönlendir
+        window.location.href = data.redirect_url;
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Sunucu hatası! Lütfen tekrar deneyin.");
+    }
+  }
+
 
   async function paidAll(button) {
     // Öncelikle updateDatabase fonksiyonunun tamamlanmasını bekle

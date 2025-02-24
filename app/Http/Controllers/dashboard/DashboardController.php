@@ -18,11 +18,23 @@ class DashboardController extends Controller
    */
   public function index()
   {
+    $firstShopcart = Shopcart::orderBy('created_at', 'asc')->first();
+    $lastShopcart = Shopcart::orderBy('created_at', 'desc')->first();
+
+    if ($firstShopcart && $lastShopcart) {
+      $firstDate = Carbon::parse($firstShopcart->created_at);
+      $lastDate = Carbon::parse($lastShopcart->created_at);
+      $diffInDays = $firstDate->diffInDays($lastDate);
+    }
+    else{
+      $diffInDays = 1;
+    }
     $monthlyAdisyonByMonth = Shopcart::whereBetween('created_at', [
       Carbon::now()->subMonths(3)->startOfMonth(), // 4 ay önceki ayın başı
       Carbon::now()->endOfMonth() // Bu ayın sonu
     ])
       ->where('ispaid', 1)
+      ->where('isOnCredit',0)
       ->get()
       ->groupBy(function ($item) {
         return Carbon::parse($item->created_at)->format('Y-m'); // Tarihi "YYYY-MM" formatında gruplar
@@ -31,6 +43,7 @@ class DashboardController extends Controller
 
     $monthlyAdisyonByDay = Shopcart::whereBetween('created_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])
       ->where('ispaid', 1)
+      ->where('isOnCredit',0)
       ->get()
       ->groupBy(function ($item) {
         return Carbon::parse($item->created_at)->format('Y-m-d'); // Tarihi "YYYY-MM-DD" formatında gruplar
@@ -39,10 +52,12 @@ class DashboardController extends Controller
 
     $monthlyAdisyon = shopcart::whereBetween('created_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])
       ->where('ispaid', 1)
+      ->where('isOnCredit',0)
       ->get();
 
     $dailyAdisyon = shopcart::whereBetween('created_at', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])
       ->where('ispaid', 1)
+      ->where('isOnCredit',0)
       ->get();
 
     $monthlySales = product_shopcart::whereBetween('created_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])->get();
@@ -56,7 +71,7 @@ class DashboardController extends Controller
       'dailyAdisyon' => $dailyAdisyon,
       'monthlyAdisyonByDay' => $monthlyAdisyonByDay,
       'monthlyAdisyonByMonth' => $monthlyAdisyonByMonth,
-
+      'diffDays' => $diffInDays,
     ]);
   }
 

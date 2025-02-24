@@ -3,6 +3,7 @@
 use App\Http\Controllers\exports\AdisyonExportController;
 use App\Http\Controllers\gider\GiderController;
 use App\Http\Controllers\settings\SettingController;
+use App\Http\Controllers\veresiye\veresiye;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\table\TableController as Table;
 use App\Http\Controllers\Menu\MenuController as Menu;
@@ -169,6 +170,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/',[Stock::class,'index'])->name('stock-index');
         Route::get('/add',[Stock::class,'create'])->name('stock-add');
     });
+  ////////////////////////////////////////////////////////////////////////////////////
+  /*                                Stock Routes                                    */
+  Route::prefix('veresiye')->group(function (){
+    Route::get('/',[veresiye::class,'index'])->name('veresiye-index');
+    Route::post('/{id}',[veresiye::class,'tahsil'])->name('veresiye-tahsil');
+  });
 ////////////////////////////////////////////////////////////////////////////////////
     /*                                Shopcart Routes                                    */
     Route::prefix('shopcart')->group(function (){
@@ -183,6 +190,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/update-database-paid',[Shopcart::class,'updateDatabasePaid']);
     Route::post('/update-database-refund',[Shopcart::class,'updateDatabaseRefund']);
     Route::post('/update-table-totals',[Table::class,'updateTableTotals']);
+    Route::post('/add-veresiye', [Shopcart::class, 'addVeresiye']);
 ////////////////////////////////////////////////////////////////////////////////////
     /*                                Export Routes                                    */
     Route::get('/export/adisyons/{day}', [AdisyonExportController::class, 'exportExcel'])->name('export.adisyons.excel');

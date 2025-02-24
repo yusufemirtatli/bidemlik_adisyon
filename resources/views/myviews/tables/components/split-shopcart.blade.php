@@ -3,14 +3,11 @@
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel3">Modal title</h5>
+        <h5 class="modal-title" id="exampleModalLabel3">Hesabı Ayır</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div class="card" style="margin-bottom: 15px">
-          <div class="d-flex flex-row justify-content-between">
-            <h5 class="card-header d-flex">Adisyon Toplam</h5>
-          </div>
           <div class="table-responsive text-nowrap">
             <table class="table table-striped">
               <thead>
@@ -123,80 +120,96 @@
     // Genel toplamı ekrana yaz
     document.getElementById('grandTotalModal').innerHTML = shopcartSplitTotalValue + ' TL';
   }
-  function updateTableTotals() {
-    fetch('/update-table-totals', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-      },
-      body: JSON.stringify({
-        shopcartId:{{$shopcartId}},
-      })
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          if(data.redirect_url){
-            window.location.href = data.redirect_url;
-          }
+
+  async function updateTableTotals() {
+    try {
+      const response = await fetch('/update-table-totals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+          shopcartId: {{$shopcartId}},
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        if (data.redirect_url) {
+          window.location.href = data.redirect_url; // Yönlendirme yapılacaksa
         } else {
-          console.log('error');
-          console.log(data);
+          console.log('Totals updated successfully');
+          console.log('All Total:', data.all_total);
+          console.log('Left Total:', data.left_total);
         }
-      })
-      .catch(error => {
-        console.error('Error updating products:', error);
-      });
+      } else {
+        console.error('Error:', data.message);
+      }
+    } catch (error) {
+      console.error('Error updating products:', error);
+    }
   }
-  function paid(button){
-    var rows = document.querySelectorAll('.product-row-tr-modal');
 
-    // Tüm verileri tutacak bir array oluştur
-    var productsArray = [];
 
-    rows.forEach(function (row) {
-      // Ürün ID'sini ve mevcut değeri alın
-      var productShopcartId = row.getAttribute('data-product-shopcart_id');
-      var productProductId = row.getAttribute('data-product-product_id');
-      var productQuantityElement = row.querySelector('.product-quantity');
-      var productQuantityValue = parseInt(productQuantityElement.textContent);
+  async function paid(button) {
+    try {
+      var rows = document.querySelectorAll('.product-row-tr-modal');
 
-      // Her bir ürün için obje oluştur ve array'e ekle
-      productsArray.push({
-        product_shopcart_id: productShopcartId,
-        product_id: productProductId,
-        quantity: productQuantityValue,
+      // Tüm verileri tutacak bir array oluştur
+      var productsArray = [];
+
+      rows.forEach(function (row) {
+        // Ürün ID'sini ve mevcut değeri alın
+        var productShopcartId = row.getAttribute('data-product-shopcart_id');
+        var productProductId = row.getAttribute('data-product-product_id');
+        var productQuantityElement = row.querySelector('.product-quantity');
+        var productQuantityValue = parseInt(productQuantityElement.textContent);
+
+        // Her bir ürün için obje oluştur ve array'e ekle
+        productsArray.push({
+          product_shopcart_id: productShopcartId,
+          product_id: productProductId,
+          quantity: productQuantityValue,
+        });
       });
-    });
 
-    fetch('/update-database-paid', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-      },
-      body: JSON.stringify({
-        products: productsArray,
-        shopcart_id:{{$shopcartId}}
-      })
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          console.log(data);
-        } else {
-          console.log('error');
-          console.log(data);
-        }
-      })
-      .catch(error => {
-        console.error('Error updating products:', error);
+      // Fetch çağrısını bekle
+      const response = await fetch('/update-database-paid', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+          products: productsArray,
+          shopcart_id: {{$shopcartId}}
+        })
       });
-    updateTableTotals();
-    beforeunload = !beforeunload;
-    window.location.reload();
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log(data);
+      } else {
+        console.log('error');
+        console.log(data);
+      }
+
+      // Tabloları güncelle
+      updateTableTotals();
+
+      // Sayfayı yenile
+      beforeunload = !beforeunload;
+      window.location.reload();
+
+    } catch (error) {
+      console.error('Error updating products:', error);
+    }
   }
+
+
   function refund(button){
     var rows = document.querySelectorAll('.product-row-tr-modal');
 

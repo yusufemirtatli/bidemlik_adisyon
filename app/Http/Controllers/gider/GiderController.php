@@ -16,24 +16,31 @@ class GiderController extends Controller
     ]);
   }
 
-  public function create(Request $request){
+  public function create(Request $request) {
     // Verileri doğrulama
     $validated = $request->validate([
-      'category' => 'required|integer|exists:categories,id', // Kategori ID'si kontrolü
+      'category' => 'required|integer', // Kategori ID kontrolü
       'name' => 'required|string|max:255', // Gider ismi kontrolü
       'amount' => 'required|numeric|min:0', // Tutar kontrolü
+      'date' => 'required|date_format:Y-m', // Yıl ve Ay formatı kontrolü
     ]);
 
-    // Verileri oluşturma
-    Gider::create([
-      'cat_id' => $validated['category'],
-      'name' => $validated['name'],
-      'amount' => $validated['amount'],
-    ]);
+
+    // Doğru tarih formatını oluştur
+    $created_at = \Carbon\Carbon::createFromFormat('Y-m', $validated['date'])
+      ->startOfMonth()
+      ->setTime(12, 0, 0); // Saat 12:00 olarak ayarla
+
+    $gider = new Gider();
+    $gider->cat_id = $validated['category'];
+    $gider->name = $validated['name'];
+    $gider->amount = $validated['amount'];
+    $gider->forceFill(['created_at' => $created_at])->save();
 
     // Başarıyla kaydedildikten sonra yönlendirme
     return redirect(route('gider-index'));
   }
+
 
   public function category(){
     $gider_category = gider_cat::all();

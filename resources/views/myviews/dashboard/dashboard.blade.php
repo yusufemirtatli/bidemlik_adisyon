@@ -199,7 +199,7 @@
                               @php($cProductQuantity = \App\Models\product_shopcart::where('product_id',$cProduct->id)->sum('quantity'))
                               <tr>
                                 <td class="mt-0">{{$cProduct->title}}</td>
-                                <td><span>{{$cProductQuantity}}</span></td>
+                                <td><span>{{$cProductQuantity}}</span> <span class="ms-3">Günlük Ort. : {{$cProductQuantity / $diffDays}}</span></td>
                               </tr>
                               @php($cPQToplam += $cProductQuantity)
                             @endforeach
@@ -209,7 +209,7 @@
                       </div>
                     </div>
                     <div class="user-progress">
-                      <small class="fw-medium">{{$cPQToplam}}</small>
+                      <small class="fw-medium">{{$cPQToplam}} </small>
                     </div>
                   </div>
                 </li>

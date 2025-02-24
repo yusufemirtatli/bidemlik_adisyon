@@ -15,7 +15,7 @@ class AdisyonExportController extends Controller
   public function exportExcel($day)
   {
     // Günlük adisyonları al
-    $adisyons = \App\Models\shopcart::whereDate('created_at', $day)->where('isPaid', 1)->get();
+    $adisyons = \App\Models\shopcart::whereDate('created_at', $day)->where('isPaid', 1)->where('isOnCredit',0)->get();
     $soldProducts = \App\Models\product_shopcart::whereDate('created_at', $day)->where('isPaid', 1)->get(); // Günlük satılan ürünler
 
     // Spreadsheet oluştur
@@ -181,6 +181,7 @@ class AdisyonExportController extends Controller
     $adisyons = \App\Models\shopcart::whereYear('created_at', $year)
       ->whereMonth('created_at', $monthNumber)
       ->where('isPaid', 1)
+      ->where('isOnCredit',0)
       ->get();
 
     $soldProducts = \App\Models\product_shopcart::whereYear('created_at', $year)

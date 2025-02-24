@@ -68,7 +68,7 @@
               <td colspan="4">
                 <div class="card">
                   <div class="d-flex justify-content-end">
-                    <button class="btn btn-success me-3 mt-3" data-bs-toggle="modal" data-bs-target="#modal-create-{{$cat->id}}">Gider Ekle</button>
+                    <button class="btn btn-success me-3 mt-3" id="open-modal" data-bs-toggle="modal" data-bs-target="#modal-create-{{$month}}-{{$cat->id}}">Gider Ekle</button>
                   </div>
                   <div class="card-body" style="padding-top: 2vh !important;">
                     <div class="table-responsive text-nowrap">
@@ -116,7 +116,7 @@
               </td>
             </tr>
             <!-- Modallar Adisyon -->
-            <div class="modal fade" id="modal-create-{{$cat->id}}" tabindex="-1" aria-hidden="true">
+            <div class="modal fade" id="modal-create-{{$month}}-{{$cat->id}}" tabindex="-1" aria-hidden="true">
               <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                   <form action="{{route('gider-add')}}" method="post" enctype="multipart/form-data">
@@ -126,6 +126,7 @@
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
+                      <input name="date" type="hidden" value="{{$month}}">
                       <div class="card">
                         <div class="card-body">
                           <input type="hidden" name="category" value="{{$cat->id}}">
@@ -141,7 +142,7 @@
                       </div>
                     </div>
                     <div class="modal-footer">
-                      <button type="submit" class="btn btn-primary">Kaydet</button>
+                      <button type="submit" class="btn btn-primary" onclick="console.log('Form Gönderildi!')">Kaydet</button>
                       <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
                     </div>
                   </form>
@@ -165,6 +166,19 @@
         row.style.display = "none";
       }
     }
+
+    function openModal(categoryId, month) {
+      // Açılacak modalın ID'sini konsola yazdır
+      console.log('Açılan Modal ID: modal-create-' + month + '-' + categoryId);
+
+      // Modal'ı seç ve aç
+      var modalId = '#modal-create-' + month + '-' + categoryId;
+      $(modalId).modal('show');  // Bootstrap modalını açmak için 'show' metodunu kullan
+
+      // Eğer başka işlemler eklemek istersen, örneğin form verilerini doldurmak:
+      // $(modalId + ' form input[name="category"]').val(categoryId);
+    }
+
   </script>
 @endsection
 
